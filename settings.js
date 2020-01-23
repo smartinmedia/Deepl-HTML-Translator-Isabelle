@@ -41,10 +41,7 @@
         ignore_tag: "lang-ignore",
         port: 443,
         path: '/v2/translate',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': 0 // Needs to be replaced with bytes 
-        }
+        method: 'GET'
+        
     }
 }

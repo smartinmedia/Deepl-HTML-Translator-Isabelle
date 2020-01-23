@@ -1,5 +1,4 @@
 ﻿var querystring = require('querystring');
-var https = require('https')
 var cheerio = require('cheerio');
 var fs = require('fs');
 var os = require("os");
@@ -92,7 +91,7 @@ if(args.job == "DEEPLCOSTSMONEY"){
 *   4. step: Get changes. If none, exit. Else either just parse newly or 
         translate
 */
-if (changes.length > 0) {
+if (changes.length > 0 && args.job == "parseonly") {
     curVersion = parseInt(jsonLangFromLoadedFile[settings.defaultLanguage]["version"]);
     newVersion = curVersion++;
     jsonLangFromParsed[settings.defaultLanguage]["version"] = newVersion;
@@ -110,6 +109,9 @@ if (changes.length > 0) {
 
     }
     
+}
+else if(args.job == "DEEPLCOSTSMONEY"){
+    translateToAllLanguages();
 }
 else{
     console.log("\nNothing to do, the texts in the existing JSON file is the same as the HTML files");
@@ -155,7 +157,7 @@ function translateToAllLanguages() {
             if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key)) { // If the other lang has also the same key as English, lets check, if anything was changed
                 continue; //Nothing to translate
             }
-            jsonLangFromParsed[curLang].key = translateText(key, jsonLangFromParsed[settings.defaultLanguage].key, curLang);
+            jsonLangFromParsed[curLang][key] = translateText(key, jsonLangFromParsed[settings.defaultLanguage][key], curLang);
             report += "Translated key: " + key + " to " + curLang; 
         }
         jsonLangFromParsed[curLang].version = newVersion;    
@@ -175,6 +177,9 @@ function translateToAllLanguages() {
 
 function translateText(key, text, targetLanguage)
 {
+    if(text.trim() == "" || text == "undefined"){
+        return false;
+    }
     var obj = {
         "target_lang" : targetLanguage,
         "source_lang" : settings.defaultLanguage,
@@ -182,7 +187,7 @@ function translateText(key, text, targetLanguage)
     }
 
     var callback = function(translateText){
-        jsonLangFromParsed[targetLanguage].key = translateText;
+        jsonLangFromParsed[targetLanguage][key] = translateText;
     }
 
     deepl.translate(obj, callback);

@@ -1,4 +1,17 @@
-﻿module.exports = {
+﻿var fs = require('fs');
+var querystring = require('querystring');
+var https = require('https')
+var settings; 
+
+if(fs.existsSync('./settings_copy.js')){
+    settings = require('./settings_copy.js');
+}
+else{
+    settings = require('./settings');
+}    
+
+
+module.exports = {
     
 
     /*
@@ -20,9 +33,11 @@
      *
      */
 
+
+
     translate: function(obj, callback) {
 
-        if (obj["auth_key"] === "" || obj["text"] === "" || obj["target_lang"] === "") {
+        if (obj["auth_key"] === "" || obj["text"] === "" || obj["target_lang"] === "" || obj["auth_key"] == "undefined" || obj["text"] == "undefined" || obj["target_lang"] == "undefined") {
             console.log("Error: Auth key, Text or target_lang missing!");
             return;
         }
@@ -35,16 +50,16 @@
 
         var request = querystring.stringify(obj);
 
-        this.sendPost(request, callback);
+        this.getRequest(request, callback);
 
     },
 
-    sendPost: function (reqString, callback) {
-        settings.deeplSettings.headers["Content-Length"] = Buffer.byteLength(reqString);
+    getRequest: function (reqString, callback) {
+        //settings.deeplSettings.headers["Content-Length"] = Buffer.byteLength(reqString);
         var req = https.request(settings.deeplSettings,
             function (res) {
                 res.setEncoding('utf8');
-                console.log(`statusCode from deepl API: ${res.statusCode}`);
+                console.log('statusCode from deepl API: ${res.statusCode}');
 
                 res.on('data',
                     function(d){
@@ -56,8 +71,7 @@
             (error) => {
                 console.error(error);
             });
-
-        req.write(data);
+        
         req.end();
 
     }
