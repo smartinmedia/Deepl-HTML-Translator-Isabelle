@@ -123,12 +123,18 @@ function readAllJsonFiles(){
     for (var i = 0; i < settings.translateTo.length; i++) {
 
         var curLang = settings.translateTo[i];
+        if(!settings.availableLanguages.includes(curLang)){
+            continue;
+        }
         var pathToLangFile = getJsonFilename(curLang);
         if (fs.existsSync(pathToLangFile)) { //If it exists, load it
             var json = fs.readFileSync(pathToLangFile, 'utf8');
             json = json.toString();
             json = json.replace("EasyRadiology_Language['" + curLang + "'] = ", "");
             jsonLangFromLoadedFile[curLang] = JSON.parse(json);
+        }
+        else{
+            jsonLangFromParsed[curLang] = {};
         }
     }
     
@@ -139,7 +145,7 @@ function translateToAllLanguages() {
     for (var i = 0; i < settings.translateTo.length; i++) {
 
         var curLang = settings.translateTo[i];
-        if(curLang == settings.defaultLanguage){
+        if(curLang == settings.defaultLanguage || !settings.availableLanguages.includes(curLang)){
             continue; // Skip the default lang
         }
         var pathToLangFile = getJsonFilename(curLang);
@@ -161,14 +167,24 @@ function translateToAllLanguages() {
             
             promises.push(translateText(key, jsonLangFromParsed[settings.defaultLanguage][key], curLang));
             
-            report += "Translated key: " + key + " to " + curLang; 
         }
 
         Promise.all(promises)
         .then((res) => {
-            debugger;
-            console.log(res);
-            jsonLangFromParsed[curLang].version = newVersion;    
+            jsonLangFromParsed[curLang].version = newVersion; 
+            var counter = 0;   
+            for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
+                if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key)) { // If the other lang has also the same key as English, lets check, if anything was changed
+                    continue; //Nothing to translate
+                }
+                report += "Translated key: " + key + " to " + curLang + " - FROM: " + jsonLangFromParsed[settings.defaultLanguage][key] 
+                + " TO: " + res[counter]["data"]["translations"][0]["text"] + "\n"; 
+
+                jsonLangFromParsed[curLang][key] = res[counter]["data"]["translations"][0]["text"]; 
+                counter++;              
+            }
+            //res[0]["data"]["translations"][0]["text"]
+
             fs.writeFileSync(getJsonFilename(curLang),
             stringifyLang(curLang, jsonLangFromParsed[curLang]),
             
@@ -178,8 +194,20 @@ function translateToAllLanguages() {
                             return console.log("Error in translateAllLanguages: " + err);
                         }
                     });            
+
+                    
+            fs.writeFileSync(settings.commonPathOfJsonFiles + "report.txt",
+            report,
+            
+                    function(err) {
+    
+                        if (err) {
+                            return console.log("Error in translateAllLanguages: " + err);
+                        }
+                    });
         })
         .catch((e) => {
+            console.log("Error: ");
             // handle errors here
         });
 
@@ -201,9 +229,6 @@ async function translateText(key, text, targetLanguage)
         "text" : text
     }
     
-    // var result = await deepl.translate(obj);
-    // jsonLangFromParsed[targetLanguage][key] = result;
-    // return true;
     return deepl.translate(obj);
 }
 
