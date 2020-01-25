@@ -1,4 +1,5 @@
 ﻿var fs = require('fs');
+var axios = require('axios');
 var querystring = require('querystring');
 var https = require('https')
 var settings; 
@@ -35,7 +36,7 @@ module.exports = {
 
 
 
-    translate: function(obj, callback) {
+    translate: async function(obj, callback) {
 
         if (obj["auth_key"] === "" || obj["text"] === "" || obj["target_lang"] === "" || obj["auth_key"] == "undefined" || obj["text"] == "undefined" || obj["target_lang"] == "undefined") {
             console.log("Error: Auth key, Text or target_lang missing!");
@@ -49,12 +50,18 @@ module.exports = {
         obj["auth_key"] = settings.deeplSettings.auth_key;
 
         var request = querystring.stringify(obj);
+        request = settings.deeplSettings.hostname + settings.deeplSettings.path + "?" + request;
 
-        this.getRequest(request, callback);
+         return await this.getRequest(request);
 
     },
 
-    getRequest: function (reqString, callback) {
+    getRequest:  async function (reqString) {
+
+
+        var transl = await axios.get(reqString);
+        return transl;
+        /*  
         //settings.deeplSettings.headers["Content-Length"] = Buffer.byteLength(reqString);
         var req = https.request(settings.deeplSettings,
             function (res) {
@@ -73,7 +80,7 @@ module.exports = {
             });
         
         req.end();
-
+        */
     }
  
 

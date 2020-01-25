@@ -3,6 +3,10 @@
     // This is the source language and the language in your HTML files
     defaultLanguage : "en",
 
+    translateTo : [
+        "de"
+    ],
+
         // the attribute in your html tags e. g. <span data-lang="intro">This is the intro</span>
     langAttribute : "data-lang", 
     
@@ -37,7 +41,7 @@
     // Settings for the deepl API
     deeplSettings: {
         auth_key: "", //Your Deepl Auth Key 
-        hostname: 'api.deepl.com',
+        hostname: 'https://api.deepl.com',
         ignore_tag: "lang-ignore",
         port: 443,
         path: '/v2/translate',
