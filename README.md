@@ -1,6 +1,8 @@
 # Deepl-HTML-Translator
 An inofficial NodeJS tool to translate websites via the Deepl API
 
+DONT CLONE YET - THIS IS STILL UNDER DEV!
+
 THIS NODE.JS DEEPL PARSER IS FREE SOFTWARE UNDER MIT LICENSE (c) EasyRadiology GmbH 2020.
 ------------------------------------------------------------------------------------------
 TERMS/CONDITIONS: DEEPL TRANSLATIONS COST MONEY!!! WE ARE NOT LIABLE FOR ERRORS IN THE CODE WHICH MAY
