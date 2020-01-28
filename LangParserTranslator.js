@@ -24,7 +24,7 @@ var report = "\nDefault language: " + settings.defaultLanguage;
 /*
  * Start with node LangParserTranslator --job=parseonly/deeplForMoney --source=en --target=de (fr, es, etc OR: all for all languages!!)
  * --job=parseonly will only parse your HTML files and put them into the JSON of the source language. Ignores the --target then
- * --job=deeplForMoney will parse AND translate with deepl - this costs money through your deepl API! We don't guarantee that this script works!!
+ * --job=DEEPLCOSTSMONEY will parse AND translate with deepl - this costs money through your deepl API! We don't guarantee that this script works!!
  *
  */
 
