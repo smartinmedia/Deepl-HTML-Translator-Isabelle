@@ -19,7 +19,7 @@ var jsonLangFromParsed = {}; // Will contain json files with languages ["en"], [
 var jsonLangFromLoadedFile = {}; // Will contain the same as above, but from the current loaded files
 var curVersion = 1;
 var newVersion = 1;
-var report = "Default language: " + settings.defaultLanguage;
+var report = "\nDefault language: " + settings.defaultLanguage;
 
 /*
  * Start with node LangParserTranslator --job=parseonly/deeplForMoney --source=en --target=de (fr, es, etc OR: all for all languages!!)
@@ -63,7 +63,7 @@ jsonLangFile["default"] = getJsonFilename(settings.defaultLanguage);
 jsonLangFile[settings.defaultLanguage] = jsonLangFile["default"];
 
 if (!fs.existsSync(jsonLangFile["default"])) {
-    jsonLangFromParsed[settings.defaultLanguage].version = 1;
+    jsonLangFromParsed[settings.defaultLanguage]["___version"] = 1;
     fs.writeFileSync(jsonLangFile["default"], 
         stringifyLang(settings.defaultLanguage, jsonLangFromParsed[settings.defaultLanguage]),
         function(err) {
@@ -72,11 +72,11 @@ if (!fs.existsSync(jsonLangFile["default"])) {
             }
         });
 }
-else{
-    var temp = fs.readFileSync(jsonLangFile["default"], 'utf8');
-    jsonLangFromLoadedFile[settings.defaultLanguage] = temp.toString().replace("EasyRadiology_Language['" + settings.defaultLanguage + "'] = ", "");
+
+var temp = fs.readFileSync(jsonLangFile["default"], 'utf8');
+jsonLangFromLoadedFile[settings.defaultLanguage] = temp.toString().replace("EasyRadiology_Language[\"" + settings.defaultLanguage + "\"] = ", "");
     
-}
+
 
 /*
 *   3. step: If translate is enabled, also load all languages
@@ -91,10 +91,12 @@ if(args.job == "DEEPLCOSTSMONEY"){
 *   4. step: Get changes. If none, exit. Else either just parse newly or 
         translate
 */
+
+trackChanges();
 if (changes.length > 0 && args.job == "parseonly") {
-    curVersion = parseInt(jsonLangFromLoadedFile[settings.defaultLanguage]["version"]);
+    curVersion = parseInt(jsonLangFromLoadedFile[settings.defaultLanguage]["___version"]);
     newVersion = curVersion++;
-    jsonLangFromParsed[settings.defaultLanguage]["version"] = newVersion;
+    jsonLangFromParsed[settings.defaultLanguage]["___version"] = newVersion;
     fs.writeFileSync(jsonLangFile["default"],
     jsonLangFromParsed[settings.defaultLanguage],
     function(err) {
@@ -130,7 +132,7 @@ function readAllJsonFiles(){
         if (fs.existsSync(pathToLangFile)) { //If it exists, load it
             var json = fs.readFileSync(pathToLangFile, 'utf8');
             json = json.toString();
-            json = json.replace("EasyRadiology_Language['" + curLang + "'] = ", "");
+            json = json.replace("EasyRadiology_Language[\"" + curLang + "\"] = ", "");
             jsonLangFromLoadedFile[curLang] = JSON.parse(json);
         }
         else{
@@ -154,7 +156,7 @@ function translateToAllLanguages() {
         if (fs.existsSync(pathToLangFile)) { //If it exists, load it
             var json = fs.readFileSync(pathToLangFile, 'utf8');
             json = json.toString();
-            json = json.replace("EasyRadiology_Language['" + curLang + "'] = ", "");
+            json = json.replace("EasyRadiology_Language[\"" + curLang + "\"] = ", "");
             jsonLangFromLoadedFile[curLang] = JSON.parse(json);
         }
         
@@ -171,14 +173,14 @@ function translateToAllLanguages() {
 
         Promise.all(promises)
         .then((res) => {
-            jsonLangFromParsed[curLang].version = newVersion; 
+            jsonLangFromParsed[curLang]["___version"] = newVersion; 
             var counter = 0;   
             for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
-                if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key)) { // If the other lang has also the same key as English, lets check, if anything was changed
+                if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key) || key=="___version") { // If the other lang has also the same key as English, lets check, if anything was changed
                     continue; //Nothing to translate
                 }
-                report += "Translated key: " + key + " to " + curLang + " - FROM: " + jsonLangFromParsed[settings.defaultLanguage][key] 
-                + " TO: " + res[counter]["data"]["translations"][0]["text"] + "\n"; 
+                report += "\nKey: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
+                + curLang + ": " + res[counter]["data"]["translations"][0]["text"]; 
 
                 jsonLangFromParsed[curLang][key] = res[counter]["data"]["translations"][0]["text"]; 
                 counter++;              
@@ -207,7 +209,7 @@ function translateToAllLanguages() {
                     });
         })
         .catch((e) => {
-            console.log("Error: ");
+            console.log("Error: " + e.message);
             // handle errors here
         });
 
@@ -219,6 +221,9 @@ function translateToAllLanguages() {
 
 async function translateText(key, text, targetLanguage)
 {
+    if(key ==="___version" || (typeof text !== 'string')){
+        return;
+    }
 
     if(text.trim() == "" || text == "undefined"){
         return false;
@@ -237,7 +242,7 @@ function getJsonFilename(language){
 }
 
 function stringifyLang(language, obj){
-    return "EasyRadiology_Language['" + language +"'] = " + JSON.stringify(obj, null, 1);
+    return "EasyRadiology_Language[\"" + language +"\"] = " + JSON.stringify(obj, null, 1);
 }
 
 /*
@@ -262,11 +267,11 @@ fs.writeFile("../../Website/wwwroot/js/Languages/en.js", jsonLang.en, function (
  *
  */
 function trackChanges() {
-    enJson = enJson.toString().replace("EasyRadiology_Language['en'] = ", "");
-    var def = jsonLangFromLoadedFile[settings.defaultLanguage];
+    enJson = jsonLangFromLoadedFile[settings.defaultLanguage].replace("EasyRadiology_Language[\"en\"] = ", "");
+    var def = JSON.parse(enJson);
     for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
         if (def.hasOwnProperty(key)) {
-            if (jsonLangFromParsed[settings.deeplSettings] === def[key]) {
+            if (jsonLangFromParsed[settings.defaultLanguage][key] === def[key] || key == "___version") {
                 continue;
             }
 
