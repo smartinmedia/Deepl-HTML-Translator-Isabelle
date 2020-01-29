@@ -42,8 +42,8 @@ module.exports = {
             console.log("Error: Auth key, Text or target_lang missing!");
             return;
         }
-        if (!obj.hasOwnProperty("ignore_tags") || obj["ignore_tag"] == "") {
-            obj["ignore_tag"] = "lang-ignore"; // <lang-ignore> blabla </lang-ignore> will be ignored
+        if (!obj.hasOwnProperty("ignore_tags") || obj["ignore_tags"] == "") {
+            obj["ignore_tags"] = "lang-ignore"; // <lang-ignore> blabla </lang-ignore> will be ignored
         }
         obj["split_sentences"] = "nonewlines";
         obj["tag_handling"] = "xml";
@@ -52,7 +52,8 @@ module.exports = {
         var request = querystring.stringify(obj);
         request = settings.deeplSettings.hostname + settings.deeplSettings.path + "?" + request;
 
-         return await this.getRequest(request);
+         //return await this.getRequest(request);
+         return await this.postRequest(obj);
 
     },
 
@@ -81,8 +82,22 @@ module.exports = {
         
         req.end();
         */
+    },
+
+    postRequest: async function (obj){
+        //obj["headers"]
+        axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+        var transl = await axios.post(settings.deeplSettings.hostname + settings.deeplSettings.path, obj)
+          .then(function (response) {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log("\nError with sending to Deepl: " + error);
+          });
+          
+          return transl;
+
     }
- 
 
 }
 

@@ -71,6 +71,7 @@ if (!fs.existsSync(jsonLangFile["default"])) {
                 return console.log("Error in step 2: " + err);
             }
         });
+    console.log("Wrote the default language JSON file!");    
 }
 
 var temp = fs.readFileSync(jsonLangFile["default"], 'utf8');
@@ -79,7 +80,7 @@ jsonLangFromLoadedFile[settings.defaultLanguage] = temp.toString().replace("Easy
 
 
 /*
-*   3. step: If translate is enabled, also load all languages
+*   3. step: If translate is enabled, also load all languages and create the jsonLangFromParsed[curLang] object and fill it, if js file present
 */
 
 if(args.job == "DEEPLCOSTSMONEY"){
@@ -106,14 +107,18 @@ if (changes.length > 0 && args.job == "parseonly") {
         }
     });
 
+    console.log("\n\Parsing finished.");
+
     if(args.job == "DEEPLCOSTSMONEY"){
         translateToAllLanguages();
+        console.log("\n\nTranslating finished.");
 
     }
     
 }
 else if(args.job == "DEEPLCOSTSMONEY"){
     translateToAllLanguages();
+    console.log("\n\nTranslating finished.");
 }
 else{
     console.log("\nNothing to do, the texts in the existing JSON file is the same as the HTML files");
@@ -134,12 +139,13 @@ function readAllJsonFiles(){
             json = json.toString();
             json = json.replace("EasyRadiology_Language[\"" + curLang + "\"] = ", "");
             jsonLangFromLoadedFile[curLang] = JSON.parse(json);
+            jsonLangFromParsed[curLang] = jsonLangFromLoadedFile[curLang]; // Put all input already into the output
         }
         else{
             jsonLangFromParsed[curLang] = {};
+
         }
     }
-    
 }
 
 function translateToAllLanguages() {
@@ -149,15 +155,6 @@ function translateToAllLanguages() {
         var curLang = settings.translateTo[i];
         if(curLang == settings.defaultLanguage || !settings.availableLanguages.includes(curLang)){
             continue; // Skip the default lang
-        }
-        var pathToLangFile = getJsonFilename(curLang);
-        jsonLangFromLoadedFile[curLang] = {};
-        
-        if (fs.existsSync(pathToLangFile)) { //If it exists, load it
-            var json = fs.readFileSync(pathToLangFile, 'utf8');
-            json = json.toString();
-            json = json.replace("EasyRadiology_Language[\"" + curLang + "\"] = ", "");
-            jsonLangFromLoadedFile[curLang] = JSON.parse(json);
         }
         
         var promises = []; 
@@ -173,6 +170,7 @@ function translateToAllLanguages() {
 
         Promise.all(promises)
         .then((res) => {
+
             jsonLangFromParsed[curLang]["___version"] = newVersion; 
             var counter = 0;   
             for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
@@ -218,7 +216,6 @@ function translateToAllLanguages() {
 }
 
 
-
 async function translateText(key, text, targetLanguage)
 {
     if(key ==="___version" || (typeof text !== 'string')){
@@ -229,8 +226,8 @@ async function translateText(key, text, targetLanguage)
         return false;
     }
     var obj = {
-        "target_lang" : targetLanguage,
-        "source_lang" : settings.defaultLanguage,
+        "target_lang" : targetLanguage.toUpperCase(),
+        "source_lang" : settings.defaultLanguage.toUpperCase(),
         "text" : text
     }
     
@@ -244,21 +241,6 @@ function getJsonFilename(language){
 function stringifyLang(language, obj){
     return "EasyRadiology_Language[\"" + language +"\"] = " + JSON.stringify(obj, null, 1);
 }
-
-/*
-parseAllFiles();
-jsonLang.en = "EasyRadiology_Language['en'] = " + JSON.stringify(jsonLang.en, null, 1);
-
-
-fs.writeFile("../../Website/wwwroot/js/Languages/en.js", jsonLang.en, function (err) {
-
-    if (err) {
-        return console.log(err);
-    }
-
-    console.log("The file was saved!");
-}); 
-  */  
 
 
 /*
@@ -296,7 +278,6 @@ function parseHtmlFiles() {
         }
     }
     return langObj;
-    //jsonLang.en = "EasyRadiology_Language['en'] = " + JSON.stringify(jsonLang.en, null, 1);
 }
 
 /*
