@@ -1,19 +1,21 @@
 ﻿var fs = require('fs');
 var axios = require('axios');
 var querystring = require('querystring');
-var https = require('https')
-var settings; 
+var https = require('https');
+var qs = require('qs');
 
-if(fs.existsSync('./settings_copy.js')){
+var settings;
+
+if (fs.existsSync('./settings_copy.js')) {
     settings = require('./settings_copy.js');
 }
-else{
+else {
     settings = require('./settings');
-}    
+}
 
 
 module.exports = {
-    
+
 
     /*
      * The object for deepl:
@@ -36,7 +38,7 @@ module.exports = {
 
 
 
-    translate: async function(obj, callback) {
+    translate: async function (obj, callback) {
 
         if (obj["auth_key"] === "" || obj["text"] === "" || obj["target_lang"] === "" || obj["auth_key"] == "undefined" || obj["text"] == "undefined" || obj["target_lang"] == "undefined") {
             console.log("Error: Auth key, Text or target_lang missing!");
@@ -52,12 +54,12 @@ module.exports = {
         var request = querystring.stringify(obj);
         request = settings.deeplSettings.hostname + settings.deeplSettings.path + "?" + request;
 
-         //return await this.getRequest(request);
-         return await this.postRequest(obj);
+        //return await this.getRequest(request);
+        return await this.postRequest(obj);
 
     },
 
-    getRequest:  async function (reqString) {
+    getRequest: async function (reqString) {
 
 
         var transl = await axios.get(reqString);
@@ -84,18 +86,21 @@ module.exports = {
         */
     },
 
-    postRequest: async function (obj){
-        //obj["headers"]
-        axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-        var transl = await axios.post(settings.deeplSettings.hostname + settings.deeplSettings.path, obj)
-          .then(function (response) {
-            console.log(response);
-          })
-          .catch(function (error) {
-            console.log("\nError with sending to Deepl: " + error);
-          });
-          
-          return transl;
+    postRequest: async function (obj) {
+        const url = settings.deeplSettings.hostname + settings.deeplSettings.path;
+        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        console.log(obj);
+        var transl = await axios.post(url, qs.stringify(obj), headers)
+            .then(function (response) {
+                console.log(response);
+            }, function(res) {
+                console.log(res);
+            })
+            .catch(function (error) {
+                console.log("\nError with sending to Deepl: " + error);
+            });
+
+        return transl;
 
     }
 
