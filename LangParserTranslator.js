@@ -160,7 +160,9 @@ function translateToAllLanguages() {
         var promises = []; 
 
         for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
-            if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key)) { // If the other lang has also the same key as English, lets check, if anything was changed
+            if (jsonLangFromLoadedFile[curLang] &&
+                jsonLangFromLoadedFile[curLang].hasOwnProperty(key) &&
+                !changes.includes(key)) { // If the other lang has also the same key as English, lets check, if anything was changed
                 continue; //Nothing to translate
             }
             
