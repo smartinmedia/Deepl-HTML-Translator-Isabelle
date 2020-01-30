@@ -13,6 +13,7 @@ npm install cheerio
 npm install html-entities
 npm install yargs
 npm install axios
+npm install qs
 (https://www.npmjs.com/package/html-entities)
 
 Then run node LangParserTranslator.js
