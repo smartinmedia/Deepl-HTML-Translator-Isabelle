@@ -133,6 +133,7 @@ function readAllJsonFiles(){
         if(!settings.availableLanguages.includes(curLang)){
             continue;
         }
+        jsonLangFromLoadedFile[curLang] = {};
         var pathToLangFile = getJsonFilename(curLang);
         if (fs.existsSync(pathToLangFile)) { //If it exists, load it
             var json = fs.readFileSync(pathToLangFile, 'utf8');
@@ -178,6 +179,12 @@ function translateToAllLanguages() {
             for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
                 if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key) || key=="___version") { // If the other lang has also the same key as English, lets check, if anything was changed
                     continue; //Nothing to translate
+                }
+                if(!counter in res || res[counter] == "undefined"){
+                    report += "\nError in Key: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
+                    + curLang; 
+                    continue;
+
                 }
                 report += "\nKey: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
                 + curLang + ": " + res[counter]["data"]["translations"][0]["text"]; 
