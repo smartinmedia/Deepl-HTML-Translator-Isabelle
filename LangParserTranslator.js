@@ -111,14 +111,13 @@ if (changes.length > 0 && args.job == "parseonly") {
 
     if(args.job == "DEEPLCOSTSMONEY"){
         translateToAllLanguages();
-        console.log("\n\nTranslating finished.");
+        
 
     }
     
 }
 else if(args.job == "DEEPLCOSTSMONEY"){
     translateToAllLanguages();
-    console.log("\n\nTranslating finished.");
 }
 else{
     console.log("\nNothing to do, the texts in the existing JSON file is the same as the HTML files");
@@ -149,7 +148,7 @@ function readAllJsonFiles(){
     }
 }
 
-function translateToAllLanguages() {
+async function translateToAllLanguages() {
     //Cycle through all languages
     for (var i = 0; i < settings.translateTo.length; i++) {
 
@@ -158,70 +157,79 @@ function translateToAllLanguages() {
             continue; // Skip the default lang
         }
         
-        var promises = []; 
+        var promises = {};
+        promises[curLang] = []; 
 
         for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
             if (jsonLangFromLoadedFile[curLang] &&
                 jsonLangFromLoadedFile[curLang].hasOwnProperty(key) &&
-                !changes.includes(key)) { // If the other lang has also the same key as English, lets check, if anything was changed
+                (!changes.includes(key) || jsonLangFromLoadedFile[curLang][key].indexOf(settings.ignoreInJson) !== -1  )) { // If the other lang has also the same key as English, lets check, if anything was changed
                 continue; //Nothing to translate
             }
             
-            promises.push(translateText(key, jsonLangFromParsed[settings.defaultLanguage][key], curLang));
+            promises[curLang].push(translateText(key, jsonLangFromParsed[settings.defaultLanguage][key], curLang));
             
         }
 
-        Promise.all(promises)
-        .then((res) => {
-
-            jsonLangFromParsed[curLang]["___version"] = newVersion; 
-            var counter = 0;   
-            for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
-                if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key) || key=="___version") { // If the other lang has also the same key as English, lets check, if anything was changed
-                    continue; //Nothing to translate
+        try{
+            if(promises[curLang].length > 0){
+                var res = await Promise.all(promises[curLang])
+                jsonLangFromParsed[curLang]["___version"] = newVersion; 
+                var counter = 0;   
+                for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
+                    if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key) || key=="___version") { // If the other lang has also the same key as English, lets check, if anything was changed
+                        continue; //Nothing to translate
+                    }
+                    if(!counter in res || res[counter] == "undefined"){
+                        report += "\nError in Key: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
+                        + curLang; 
+                        continue;
+        
+                    }
+        
+        
+                    if(res[counter] == "undefined" || res[counter]["data"] == "undefined"){
+                        console.log("\ndata is undefined for key: " + key + " in language: " + curLang);
+                    }
+        
+                    report += "\nKey: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
+                    + " / " + curLang + ": " + res[counter]["data"]["translations"][0]["text"]; 
+        
+                    jsonLangFromParsed[curLang][key] = res[counter]["data"]["translations"][0]["text"]; 
+                    counter++;              
                 }
-                if(!counter in res || res[counter] == "undefined"){
-                    report += "\nError in Key: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
-                    + curLang; 
-                    continue;
-
-                }
-                report += "\nKey: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
-                + curLang + ": " + res[counter]["data"]["translations"][0]["text"]; 
-
-                jsonLangFromParsed[curLang][key] = res[counter]["data"]["translations"][0]["text"]; 
-                counter++;              
+                console.log("\nTranslating " + curLang + " finished.\n");
+                //res[0]["data"]["translations"][0]["text"]
+        
+                fs.writeFileSync(getJsonFilename(curLang),
+                stringifyLang(curLang, jsonLangFromParsed[curLang]),
+                
+                        function(err) {
+        
+                            if (err) {
+                                return console.log("Error in translateAllLanguages: " + err);
+                            }
+                        });
             }
-            //res[0]["data"]["translations"][0]["text"]
-
-            fs.writeFileSync(getJsonFilename(curLang),
-            stringifyLang(curLang, jsonLangFromParsed[curLang]),
+                        
+            }
+            catch(e){
+                console.log(e);
+            }
             
-                    function(err) {
     
-                        if (err) {
-                            return console.log("Error in translateAllLanguages: " + err);
-                        }
-                    });            
-
-                    
-            fs.writeFileSync(settings.commonPathOfJsonFiles + "report.txt",
-            report,
-            
-                    function(err) {
-    
-                        if (err) {
-                            return console.log("Error in translateAllLanguages: " + err);
-                        }
-                    });
-        })
-        .catch((e) => {
-            console.log("Error: " + e.message);
-            // handle errors here
-        });
-
-
+        
      } 
+
+     fs.writeFileSync(settings.commonPathOfJsonFiles + "report.txt",
+     report,
+     
+             function(err) {
+
+                 if (err) {
+                     return console.log("Error in translateAllLanguages: " + err);
+                 }
+             });
 }
 
 

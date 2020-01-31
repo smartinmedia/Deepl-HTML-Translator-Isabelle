@@ -3,3 +3,4 @@ node_modules/
 test/js_output/report.txt
 test/js_output/lang_en.js
 test/js_output/lang_de.js
+test/js_output/
