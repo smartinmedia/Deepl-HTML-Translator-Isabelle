@@ -52,15 +52,15 @@ I named the job "DEEPLCOSTSMONEY" to remind you that every execution costs money
 
 To get started, take the settings.js and modify it:
 
-..* defaultLanguage: The language to translate from (e. g. "en" for English)
-..* translateTo: Array with languages to translate to (must be present in the availableLanguages)
-..* htmlWithLang: All your HTML files, which need translation, have to be listed in the "htmlWithLang" array in settings.js.
-..* commonPathOfHtmlFiles: Make sure that you put the path to these files in "commonPathOfHtmlFiles".
-..* commonPathOfJsonFiles: Specify a path, where the JS files with the translations will be written to in "commonPathOfJsonFiles".
-..* jsonFilePrefix: In "jsonFilePrefix", you can specify any prefix for the js files, e. g. "lang-", then the output would be 
+* defaultLanguage: The language to translate from (e. g. "en" for English)
+* translateTo: Array with languages to translate to (must be present in the availableLanguages)
+* htmlWithLang: All your HTML files, which need translation, have to be listed in the "htmlWithLang" array in settings.js.
+* commonPathOfHtmlFiles: Make sure that you put the path to these files in "commonPathOfHtmlFiles".
+* commonPathOfJsonFiles: Specify a path, where the JS files with the translations will be written to in "commonPathOfJsonFiles".
+* jsonFilePrefix: In "jsonFilePrefix", you can specify any prefix for the js files, e. g. "lang-", then the output would be 
 for English e. g. lang-en.js
-..* langAttribute: the HTML attribute for the tag surrounding each text for translation
-..* deeplSettings: Put your API key inside, else the settings should be fine
+* langAttribute: the HTML attribute for the tag surrounding each text for translation
+* deeplSettings: Put your API key inside, else the settings should be fine
 
 
 ## Examples
