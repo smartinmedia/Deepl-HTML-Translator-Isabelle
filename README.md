@@ -1,4 +1,4 @@
-# Deepl-HTML-Translator
+# Deepl-HTML-Translator "Isabelle"
 An inofficial NodeJS tool to translate websites via the Deepl API
 
 THIS NODE.JS DEEPL PARSER IS FREE SOFTWARE UNDER MIT LICENSE (c) EasyRadiology GmbH 2020.
