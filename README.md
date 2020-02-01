@@ -104,7 +104,7 @@ The default language is English:
 ```
 
 If you have run the script and translated e. g. into French, so you have a lang_fr.js file and you were unsatisfied with one of 
-the translations, you can edit the French JS file for that key add a "&lt;/ignore&gt;" tag anywhere into the string. Then, this text will NOT be overwritten, if you have changed some of the text in that key in the default language and re-run the LangParserTranslator.js again.
+the translations, you can edit the French JS file for that key add a "&lt;ignore/&gt;" tag anywhere into the string. Then, this text will NOT be overwritten, if you have changed some of the text in that key in the default language and re-run the LangParserTranslator.js again.
 
 As an example below: The key "title" will not be corrected anymore, even if "title" changes in the default language. This can be useful, if the Deepl translation is not optimal and you want to "freeze" that result.
 
@@ -112,7 +112,7 @@ As an example below: The key "title" will not be corrected anymore, even if "tit
 ```javascript
 EasyRadiology_Language["fr"] = {
  "___version": 1,
- "title": "</ignore>Test de traduction",
+ "title": "<ignore/>Test de traduction",
  "header": "Ceci est un test pour la bibliothèque de traduction",
  "Introduction": "Voici un texte en Emglish, qui devrait être traduit par cette bibliothèque avec Deepl.",
  "Summary": "Dans ce paragraphe, nous vérifions si la traduction fonctionne également sans être interrompue par des <strong>balises</strong>. <br><br>Il devrait également fonctionner avec la balise, qui peut exclure le contenu de la traduction. Cette balise est par défaut étiquetée \"lang-ignore\", mais peut être modifiée dans les paramètres (settings.js). Donc, si cette étiquette d'ignorance fonctionne, alors il ne devrait pas y avoir de traduction du mot \"E-N-V-I-R-O-N-M-E-N-T\" après le point d'exclamation ! <lang-ignore>ENVIRONMENT</lang-ignore>"

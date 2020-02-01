@@ -8,7 +8,7 @@
         "fr"
     ],
 
-    ignoreInJson : "</ignore>", //Don't confuse this with the deeplSettings.ignore_tag: This here can be put into a JS language file within a line of text and the whole text will not be overwritten anymore in the next translation
+    ignoreInJson : "<ignore/>", //Don't confuse this with the deeplSettings.ignore_tag: This here can be put into a JS language file within a line of text and the whole text will not be overwritten anymore in the next translation
 
         // the attribute in your html tags e. g. <span data-lang="intro">This is the intro</span>
     langAttribute : "data-lang", 
