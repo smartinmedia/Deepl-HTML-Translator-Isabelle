@@ -97,11 +97,11 @@ trackChanges();
 if (changes.length > 0 ) {
     curVersion = parseInt(jsonLangFromLoadedFile[settings.defaultLanguage]["___version"]);
     newVersion = curVersion++;
-    jsonLangFromParsed[settings.defaultLanguage]["___version"] = newVersion;
+    jsonLangFromParsed[settings.defaultLanguage]["___version"] = newVersion.toString();
 
     // Write the default language file, if there are changes
     fs.writeFileSync(jsonLangFile["default"],
-    jsonLangFromParsed[settings.defaultLanguage],
+    stringifyLang(settings.defaultLanguage, jsonLangFromParsed[settings.defaultLanguage]),
     function(err) {
 
         if (err) {
@@ -110,13 +110,7 @@ if (changes.length > 0 ) {
     });
 
     console.log("\nParsing finished. A new default language file (language: " + settings.defaultLanguage + " was written!");
-
-    if(args.job == "DEEPLCOSTSMONEY"){
-        translateToAllLanguages();
-        
-
-    }
-    
+   
 }
 
 if(args.job == "DEEPLCOSTSMONEY"){
@@ -219,8 +213,7 @@ async function translateToAllLanguages() {
                     jsonLangFromParsed[curLang][key] = res[counter]["data"]["translations"][0]["text"]; 
                     counter++;              
                 }
-                translationCounter--; // Subtract the version
-                console.log("\nTranslating " + curLang + " finished with " + translationCounter.toString() + " translated texts.\n");
+                console.log("Translating " + curLang + " finished with " + translationCounter.toString() + " translated texts.\n");
                 //res[0]["data"]["translations"][0]["text"]
         
                 fs.writeFileSync(getJsonFilename(curLang),
@@ -312,6 +305,7 @@ function trackChanges() {
         }
         changes.push(key);
     }
+    console.log("From last version, " + changes.length + " change(s) was/were performed");
     //console.log("Changes are: " + changes);
 }
 
