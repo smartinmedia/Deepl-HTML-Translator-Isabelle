@@ -68,7 +68,7 @@ module.exports = {
     postRequest: async function (obj) {
         const url = settings.deeplSettings.hostname + settings.deeplSettings.path;
         const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        console.log(obj);
+        //console.log(obj);
         return await axios.post(url, qs.stringify(obj), headers);
 
 

@@ -94,20 +94,22 @@ if(args.job == "DEEPLCOSTSMONEY"){
 */
 
 trackChanges();
-if (changes.length > 0 && args.job == "parseonly") {
+if (changes.length > 0 ) {
     curVersion = parseInt(jsonLangFromLoadedFile[settings.defaultLanguage]["___version"]);
     newVersion = curVersion++;
     jsonLangFromParsed[settings.defaultLanguage]["___version"] = newVersion;
+
+    // Write the default language file, if there are changes
     fs.writeFileSync(jsonLangFile["default"],
     jsonLangFromParsed[settings.defaultLanguage],
     function(err) {
 
         if (err) {
-            return console.log("Write error in step 4: " + err);
+            return console.log("\nWrite error in step 4: " + err);
         }
     });
 
-    console.log("\n\Parsing finished.");
+    console.log("\nParsing finished. A new default language file (language: " + settings.defaultLanguage + " was written!");
 
     if(args.job == "DEEPLCOSTSMONEY"){
         translateToAllLanguages();
@@ -116,10 +118,11 @@ if (changes.length > 0 && args.job == "parseonly") {
     }
     
 }
-else if(args.job == "DEEPLCOSTSMONEY"){
+
+if(args.job == "DEEPLCOSTSMONEY"){
     translateToAllLanguages();
 }
-else{
+else if(changes.length == 0){
     console.log("\nNothing to do, the texts in the existing JSON file is the same as the HTML files");
     process.exit(0);
 }
@@ -135,10 +138,23 @@ function readAllJsonFiles(){
         jsonLangFromLoadedFile[curLang] = {};
         var pathToLangFile = getJsonFilename(curLang);
         if (fs.existsSync(pathToLangFile)) { //If it exists, load it
-            var json = fs.readFileSync(pathToLangFile, 'utf8');
+            try{
+                var json = fs.readFileSync(pathToLangFile, 'utf8');
+            }
+            catch (e){
+                console.log("\nThe file " + pathToLangFile + " could not be opened. Maybe it is opened somewhere else?");
+                console.log(e);
+                process.exit(1);
+            }
             json = json.toString();
             json = json.replace("EasyRadiology_Language[\"" + curLang + "\"] = ", "");
-            jsonLangFromLoadedFile[curLang] = JSON.parse(json);
+            try{
+                jsonLangFromLoadedFile[curLang] = JSON.parse(json);
+            }
+            catch(e){
+                console.log("File " + pathToLangFile + " could not be parsed to Json. Please check file or delete");
+
+            }
             jsonLangFromParsed[curLang] = jsonLangFromLoadedFile[curLang]; // Put all input already into the output
         }
         else{
@@ -149,8 +165,9 @@ function readAllJsonFiles(){
 }
 
 async function translateToAllLanguages() {
-    //Cycle through all languages
+    // Cycle through all languages
     for (var i = 0; i < settings.translateTo.length; i++) {
+        var translationCounter = 0;
 
         var curLang = settings.translateTo[i];
         if(curLang == settings.defaultLanguage || !settings.availableLanguages.includes(curLang)){
@@ -160,17 +177,21 @@ async function translateToAllLanguages() {
         var promises = {};
         promises[curLang] = []; 
 
+        // Go through all keys of the default language, from the freshly parsed
         for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
             if (jsonLangFromLoadedFile[curLang] &&
                 jsonLangFromLoadedFile[curLang].hasOwnProperty(key) &&
                 (!changes.includes(key) || jsonLangFromLoadedFile[curLang][key].indexOf(settings.ignoreInJson) !== -1  )) { // If the other lang has also the same key as English, lets check, if anything was changed
-                continue; //Nothing to translate
+                continue; // Nothing to translate
             }
-            
+            translationCounter++;
+            // Push that in the "TODO array"
             promises[curLang].push(translateText(key, jsonLangFromParsed[settings.defaultLanguage][key], curLang));
             
         }
 
+
+        // Send off all the texts to be translated and write the language file
         try{
             if(promises[curLang].length > 0){
                 var res = await Promise.all(promises[curLang])
@@ -178,7 +199,7 @@ async function translateToAllLanguages() {
                 var counter = 0;   
                 for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
                     if (jsonLangFromLoadedFile[curLang].hasOwnProperty(key) && !changes.includes(key) || key=="___version") { // If the other lang has also the same key as English, lets check, if anything was changed
-                        continue; //Nothing to translate
+                        continue; // Nothing to translate
                     }
                     if(!counter in res || res[counter] == "undefined"){
                         report += "\nError in Key: \"" + key + "\" - " + settings.defaultLanguage + ": " + jsonLangFromParsed[settings.defaultLanguage][key] 
@@ -198,7 +219,8 @@ async function translateToAllLanguages() {
                     jsonLangFromParsed[curLang][key] = res[counter]["data"]["translations"][0]["text"]; 
                     counter++;              
                 }
-                console.log("\nTranslating " + curLang + " finished.\n");
+                translationCounter--; // Subtract the version
+                console.log("\nTranslating " + curLang + " finished with " + translationCounter.toString() + " translated texts.\n");
                 //res[0]["data"]["translations"][0]["text"]
         
                 fs.writeFileSync(getJsonFilename(curLang),
@@ -211,6 +233,9 @@ async function translateToAllLanguages() {
                             }
                         });
             }
+            else{
+                console.log("Nothing to tranlate for language: " + curLang);
+            }
                         
             }
             catch(e){
@@ -220,6 +245,8 @@ async function translateToAllLanguages() {
     
         
      } 
+
+     // Write a report file
 
      fs.writeFileSync(settings.commonPathOfJsonFiles + "report.txt",
      report,
@@ -266,8 +293,16 @@ function stringifyLang(language, obj){
  *
  */
 function trackChanges() {
+
     enJson = jsonLangFromLoadedFile[settings.defaultLanguage].replace("EasyRadiology_Language[\"en\"] = ", "");
-    var def = JSON.parse(enJson);
+    try{
+        var def = JSON.parse(enJson);
+    }
+    catch(e){
+        console.log("\nThe default English JSON file was loaded, but the content cannot be converted to JSON. Please check the file and in doubt, delete it!");
+        console.log(e);
+        process.exit(1);
+    }
     for (var key in jsonLangFromParsed[settings.defaultLanguage]) {
         if (def.hasOwnProperty(key)) {
             if (jsonLangFromParsed[settings.defaultLanguage][key] === def[key] || key == "___version") {
