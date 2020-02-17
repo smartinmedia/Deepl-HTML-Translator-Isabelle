@@ -62,6 +62,14 @@ for English e. g. lang-en.js
 * langAttribute: the HTML attribute for the tag surrounding each text for translation
 * deeplSettings: Put your API key inside, else the settings should be fine
 
+Important tip: Sometimes, Deepl will not translate as it should, because it does not know the context. E. g. I tried to translate "View exam" into German. Now, in German it was translated to "Prüfung ansehen" as "exam" can be "Prüfung" (like a test, you have to take at school) or "Untersuchung" (the medical exam, which I needed). To fix this, there is a cool hack: On your website, you can e. g. write 
+
+´´´html
+<p data-lang="exam">View <span style="display:none;">medical </span>exam</p>
+´´´
+
+Then, Deepl gets everything including the context, but your browser does not display the "medical".
+
 
 ## Examples
 
