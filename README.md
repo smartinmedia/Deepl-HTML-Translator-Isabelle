@@ -64,9 +64,9 @@ for English e. g. lang-en.js
 
 Important tip: Sometimes, Deepl will not translate as it should, because it does not know the context. E. g. I tried to translate "View exam" into German. Now, in German it was translated to "Prüfung ansehen" as "exam" can be "Prüfung" (like a test, you have to take at school) or "Untersuchung" (the medical exam, which I needed). To fix this, there is a cool hack: On your website, you can e. g. write 
 
-´´´html
+```html
 <p data-lang="exam">View <span style="display:none;">medical </span>exam</p>
-´´´
+```
 
 Then, Deepl gets everything including the context, but your browser does not display the "medical".
 
