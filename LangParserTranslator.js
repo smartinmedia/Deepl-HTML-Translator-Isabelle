@@ -97,7 +97,7 @@ trackChanges();
 if (changes.length > 0 ) {
     curVersion = parseInt(jsonLangFromLoadedFile[settings.defaultLanguage]["___version"]);
     newVersion = curVersion++;
-    jsonLangFromParsed[settings.defaultLanguage]["___version"] = newVersion.toString();
+    jsonLangFromParsed[settings.defaultLanguage]["___version"] = newVersion;
 
     // Write the default language file, if there are changes
     fs.writeFileSync(jsonLangFile["default"],
@@ -337,11 +337,11 @@ function parseFile(file) {
     var $ = cheerio.load(file2);
     $("[" + settings.langAttribute + "]").each(function (i, elem) {
         var langItem = $(this).html();
-        langItem = langItem.replace(/\\t|\\n|^\s|\\(?=")/g, '');
-        langItem = langItem.replace(/\s+/g, " ");
+        langItem = langItem.replace(/\\t|\\n|^\s|\\(?=")/g, ''); //Replace line breaks or tabs of the HTML code with nothing
+        langItem = langItem.replace(/\s+/g, " "); // Replace multiple spaces with 1 space
         langItem = entities.decode(langItem);
 
-        toLangObj[$(this).attr(settings.langAttribute)] = langItem.trim();
+        toLangObj[$(this).attr(settings.langAttribute)] = langItem; // .trim();
 
     });
 
