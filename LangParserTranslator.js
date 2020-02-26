@@ -337,11 +337,12 @@ function parseFile(file) {
     var $ = cheerio.load(file2);
     $("[" + settings.langAttribute + "]").each(function (i, elem) {
         var langItem = $(this).html();
-        langItem = langItem.replace(/\\t|\\n|^\s|\\(?=")/g, ''); //Replace line breaks or tabs of the HTML code with nothing
-        langItem = langItem.replace(/\s+/g, " "); // Replace multiple spaces with 1 space
+        langItem = langItem.replace(/^[\s]{2,}|[\s]{2,}$/gm, " "); // Replace multiple spaces with 1 space
+        langItem = langItem.replace(/(?:\r\n|\r|\n|\t)/gm, ''); //Replace line breaks or tabs of the HTML code with nothing
+        
         langItem = entities.decode(langItem);
 
-        toLangObj[$(this).attr(settings.langAttribute)] = langItem; // .trim();
+        toLangObj[$(this).attr(settings.langAttribute)] = langItem; 
 
     });
 
